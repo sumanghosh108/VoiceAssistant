@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Test - Simple</title>
+</head>
+<body>
+    <h1>Simple Audio Packet Test</h1>
+    <button onclick="connect()">Connect</button>
+    <button onclick="startRecording()">Start Recording</button>
+    <button onclick="stopRecording()">Stop Recording</button>
+    <div id="log" style="font-family: monospace; white-space: pre; margin-top: 20px;"></div>
+
+    <script>
+        let ws = null;
+        let isRecording = false;
+        let audioContext = null;
+        let processor = null;
+        let stream = null;
+        let sequenceNumber = 0;
+        let packetCount = 0;
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.textContent += new Date().toISOString() + ': ' + message + '\n';
+            console.log(message);
+        }
+
+        function connect() {
+            ws = new WebSocket('ws://localhost:8000');
+            ws.binaryType = 'arraybuffer';
+            
+            ws.onopen = () => {
+                log('WebSocket connected');
+            };
+            
+            ws.onmessage = (event) => {
+                if (event.data instanceof ArrayBuffer) {
+                    packetCount++;
+                    const view = new DataView(event.data);
+                    const seq = view.getUint32(0, false);
+                    const isFinal = view.getUint8(4);
+                    const audioBytes = event.data.byteLength - 5;
+                    
+                    log(`Packet #${packetCount}: seq=${seq}, final=${isFinal}, bytes=${audioBytes}`);
+                    
+                    if (packetCount === 1) {
+                        log('✅ AUDIO PACKETS ARE BEING RECEIVED!');
+                    }
+                } else {
+                    log('Received non-binary data: ' + typeof event.data);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                log('WebSocket error: ' + error);
+            };
+            
+            ws.onclose = () => {
+                log('WebSocket closed');
+            };
+        }
+
+        async function startRecording() {
+            if (isRecording) return;
+            
+            log('Starting recording...');
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        channelCount: 1,
+                        sampleRate: 16000
+                    } 
+                });
+                
+                audioContext = new AudioContext({ sampleRate: 16000 });
+                const source = audioContext.createMediaStreamSource(stream);
+                processor = audioContext.createScriptProcessor(4096, 1, 1);
+                
+                processor.onaudioprocess = (e) => {
+                    if (!isRecording || !ws || ws.readyState !== WebSocket.OPEN) return;
+                    
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    const pcm16 = new Int16Array(inputData.length);
+                    for (let i = 0; i < inputData.length; i++) {
+                        const s = Math.max(-1, Math.min(1, inputData[i]));
+                        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                    }
+                    
+                    const timestamp = Date.now() / 1000.0;
+                    const buffer = new ArrayBuffer(12 + pcm16.byteLength);
+                    const view = new DataView(buffer);
+                    view.setFloat64(0, timestamp, false);
+                    view.setUint32(8, sequenceNumber++, false);
+                    new Uint8Array(buffer, 12).set(new Uint8Array(pcm16.buffer));
+                    
+                    ws.send(buffer);
+                };
+                
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+                
+                isRecording = true;
+                sequenceNumber = 0;
+                packetCount = 0;
+                log('Recording started');
+                
+            } catch (error) {
+                log('Error starting recording: ' + error.message);
+            }
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+            
+            isRecording = false;
+            
+            if (processor) {
+                processor.disconnect();
+                processor = null;
+            }
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            
+            log('Recording stopped');
+            log(`Total packets received: ${packetCount}`);
+        }
+    </script>
+</body>
+</html>

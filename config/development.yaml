@@ -1,0 +1,47 @@
+# Development Environment Configuration
+# Optimized for local development with verbose logging and debugging features
+
+# API Configuration
+# Note: Set API keys via environment variables for security
+# whisper_api_key: "your-whisper-api-key"
+# gemini_api_key: "your-gemini-api-key"
+# elevenlabs_api_key: "your-elevenlabs-api-key"
+# elevenlabs_voice_id: "your-voice-id"
+
+# Increased timeouts for debugging
+whisper_timeout: 10.0
+gemini_model: "gemini-pro"
+gemini_timeout: 15.0
+elevenlabs_timeout: 10.0
+
+# Server Configuration - localhost only
+websocket_host: "127.0.0.1"
+websocket_port: 8000
+metrics_host: "127.0.0.1"
+metrics_port: 8001
+
+# Pipeline Configuration - smaller buffers for faster iteration
+audio_buffer_ms: 500
+token_buffer_size: 5
+max_conversation_turns: 5
+
+# Resilience Configuration - more aggressive retries for development
+retry_max_attempts: 5
+retry_initial_delay_ms: 50
+retry_max_delay_ms: 2000
+
+# More lenient circuit breaker for development
+cb_failure_threshold: 0.8
+cb_window_size: 20
+cb_timeout_seconds: 10
+
+# Observability Configuration - verbose logging and recording enabled
+enable_recording: true
+recording_path: "./recordings/dev"
+log_level: "DEBUG"
+
+# Relaxed latency budgets for development
+latency_budget_asr_ms: 1000
+latency_budget_llm_ms: 600
+latency_budget_tts_ms: 800
+latency_budget_e2e_ms: 4000

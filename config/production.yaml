@@ -1,0 +1,48 @@
+# Production Environment Configuration
+# Optimized for reliability, performance, and security
+
+# API Configuration
+# CRITICAL: Never commit API keys to version control
+# Set these via environment variables or secrets management:
+#   WHISPER_API_KEY
+#   GEMINI_API_KEY
+#   ELEVENLABS_API_KEY
+#   ELEVENLABS_VOICE_ID
+
+# Production timeouts - balanced for reliability
+whisper_timeout: 3.0
+gemini_model: "gemini-pro"
+gemini_timeout: 5.0
+elevenlabs_timeout: 3.0
+
+# Server Configuration - bind to all interfaces
+websocket_host: "0.0.0.0"
+websocket_port: 8000
+metrics_host: "0.0.0.0"
+metrics_port: 8001
+
+# Pipeline Configuration - optimized for quality
+audio_buffer_ms: 1000
+token_buffer_size: 10
+max_conversation_turns: 10
+
+# Resilience Configuration - production defaults
+retry_max_attempts: 3
+retry_initial_delay_ms: 100
+retry_max_delay_ms: 5000
+
+# Circuit breaker tuned for production
+cb_failure_threshold: 0.5
+cb_window_size: 10
+cb_timeout_seconds: 30
+
+# Observability Configuration - INFO logging, recording disabled
+enable_recording: false
+recording_path: "/var/log/voice-assistant/recordings"
+log_level: "INFO"
+
+# Production latency budgets
+latency_budget_asr_ms: 500
+latency_budget_llm_ms: 300
+latency_budget_tts_ms: 400
+latency_budget_e2e_ms: 2000

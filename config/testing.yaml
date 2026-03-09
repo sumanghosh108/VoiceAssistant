@@ -1,0 +1,47 @@
+# Testing Environment Configuration
+# Optimized for automated testing with fast timeouts and minimal latency budgets
+
+# API Configuration
+# For testing, you can use mock API keys or test credentials
+# whisper_api_key: "test-whisper-key"
+# gemini_api_key: "test-gemini-key"
+# elevenlabs_api_key: "test-elevenlabs-key"
+# elevenlabs_voice_id: "test-voice-id"
+
+# Short timeouts for fast test execution
+whisper_timeout: 1.0
+gemini_model: "gemini-pro"
+gemini_timeout: 2.0
+elevenlabs_timeout: 1.0
+
+# Server Configuration - localhost for testing
+websocket_host: "127.0.0.1"
+websocket_port: 8000
+metrics_host: "127.0.0.1"
+metrics_port: 8001
+
+# Pipeline Configuration - minimal buffers for fast tests
+audio_buffer_ms: 100
+token_buffer_size: 3
+max_conversation_turns: 3
+
+# Resilience Configuration - minimal retries for fast failure
+retry_max_attempts: 1
+retry_initial_delay_ms: 10
+retry_max_delay_ms: 100
+
+# Lenient circuit breaker for testing
+cb_failure_threshold: 0.9
+cb_window_size: 5
+cb_timeout_seconds: 5
+
+# Observability Configuration - verbose logging, recording enabled
+enable_recording: true
+recording_path: "./test_recordings"
+log_level: "DEBUG"
+
+# Relaxed latency budgets for testing
+latency_budget_asr_ms: 2000
+latency_budget_llm_ms: 2000
+latency_budget_tts_ms: 2000
+latency_budget_e2e_ms: 10000

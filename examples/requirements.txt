@@ -1,0 +1,8 @@
+# Requirements for example client applications
+
+# Voice client dependencies
+pyaudio>=0.2.13
+websockets>=12.0
+
+# Optional: for metrics dashboard example
+requests>=2.31.0

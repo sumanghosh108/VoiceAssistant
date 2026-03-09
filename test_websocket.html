@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Assistant WebSocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.disconnected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .status.connected {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status.connecting {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #1976D2;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .disconnect-btn {
+            background-color: #f44336;
+        }
+        .disconnect-btn:hover {
+            background-color: #d32f2f;
+        }
+        #log {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #2196F3;
+            padding-left: 10px;
+        }
+        .log-entry.error {
+            border-left-color: #f44336;
+            background-color: #ffebee;
+        }
+        .log-entry.success {
+            border-left-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #1976D2;
+        }
+        .info-box code {
+            background-color: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Voice Assistant WebSocket Test</h1>
+        <p>Test the WebSocket connection to your Real-Time Voice Assistant</p>
+        
+        <div id="status" class="status disconnected">
+            ● Disconnected
+        </div>
+        
+        <div>
+            <button id="connectBtn" onclick="connect()">Connect to WebSocket</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled class="disconnect-btn">Disconnect</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <div class="info-box">
+            <h3>Connection Info</h3>
+            <p><strong>WebSocket URL:</strong> <code id="wsUrl">ws://localhost:8000</code></p>
+            <p><strong>Status:</strong> <span id="statusText">Not connected</span></p>
+            <p><strong>Session ID:</strong> <span id="sessionId">-</span></p>
+        </div>
+        
+        <h3>Connection Log</h3>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        let sessionId = null;
+
+        function updateStatus(status, text) {
+            const statusDiv = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            
+            statusDiv.className = 'status ' + status;
+            statusText.textContent = text;
+            
+            if (status === 'connected') {
+                statusDiv.textContent = '● Connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } else if (status === 'connecting') {
+                statusDiv.textContent = '● Connecting...';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = true;
+            } else {
+                statusDiv.textContent = '● Disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            addLog('Log cleared', 'info');
+        }
+
+        function connect() {
+            const wsUrl = document.getElementById('wsUrl').textContent;
+            
+            addLog('Attempting to connect to ' + wsUrl, 'info');
+            updateStatus('connecting', 'Connecting...');
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = function(event) {
+                    addLog('✓ WebSocket connection established!', 'success');
+                    updateStatus('connected', 'Connected');
+                    sessionId = 'ws-' + Date.now();
+                    document.getElementById('sessionId').textContent = sessionId;
+                };
+                
+                ws.onmessage = function(event) {
+                    addLog('← Received message: ' + event.data, 'success');
+                };
+                
+                ws.onerror = function(error) {
+                    addLog('✗ WebSocket error occurred', 'error');
+                    console.error('WebSocket error:', error);
+                };
+                
+                ws.onclose = function(event) {
+                    addLog('Connection closed (Code: ' + event.code + ', Reason: ' + (event.reason || 'No reason provided') + ')', 'info');
+                    updateStatus('disconnected', 'Disconnected');
+                    document.getElementById('sessionId').textContent = '-';
+                    ws = null;
+                };
+                
+            } catch (error) {
+                addLog('✗ Failed to create WebSocket: ' + error.message, 'error');
+                updateStatus('disconnected', 'Connection failed');
+            }
+        }
+
+        function disconnect() {
+            if (ws) {
+                addLog('Closing connection...', 'info');
+                ws.close();
+            }
+        }
+
+        // Initial log entry
+        addLog('WebSocket test page loaded. Click "Connect" to test the connection.', 'info');
+        addLog('Make sure the Voice Assistant server is running on localhost:8000', 'info');
+    </script>
+</body>
+</html>

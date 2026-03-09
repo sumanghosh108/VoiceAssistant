@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  voice-assistant:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: realtime-voice-assistant
+    ports:
+      - "8000:8000"  # WebSocket server
+      - "8001:8001"  # Metrics and health check endpoints
+    environment:
+      # Required API keys
+      - WHISPER_API_KEY=${WHISPER_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID}
+      
+      # API Configuration
+      - WHISPER_TIMEOUT=${WHISPER_TIMEOUT:-3.0}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-pro}
+      - GEMINI_TIMEOUT=${GEMINI_TIMEOUT:-5.0}
+      - ELEVENLABS_TIMEOUT=${ELEVENLABS_TIMEOUT:-3.0}
+      
+      # Server Configuration
+      - WEBSOCKET_HOST=${WEBSOCKET_HOST:-0.0.0.0}
+      - WEBSOCKET_PORT=${WEBSOCKET_PORT:-8000}
+      - METRICS_HOST=${METRICS_HOST:-0.0.0.0}
+      - METRICS_PORT=${METRICS_PORT:-8001}
+      
+      # Pipeline Configuration
+      - AUDIO_BUFFER_MS=${AUDIO_BUFFER_MS:-1000}
+      - TOKEN_BUFFER_SIZE=${TOKEN_BUFFER_SIZE:-10}
+      - MAX_CONVERSATION_TURNS=${MAX_CONVERSATION_TURNS:-10}
+      
+      # Resilience Configuration
+      - RETRY_MAX_ATTEMPTS=${RETRY_MAX_ATTEMPTS:-3}
+      - RETRY_INITIAL_DELAY_MS=${RETRY_INITIAL_DELAY_MS:-100}
+      - RETRY_MAX_DELAY_MS=${RETRY_MAX_DELAY_MS:-5000}
+      - CB_FAILURE_THRESHOLD=${CB_FAILURE_THRESHOLD:-0.5}
+      - CB_WINDOW_SIZE=${CB_WINDOW_SIZE:-10}
+      - CB_TIMEOUT_SECONDS=${CB_TIMEOUT_SECONDS:-30}
+      
+      # Observability Configuration
+      - ENABLE_RECORDING=${ENABLE_RECORDING:-false}
+      - RECORDING_PATH=/app/recordings
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LATENCY_BUDGET_ASR_MS=${LATENCY_BUDGET_ASR_MS:-500}
+      - LATENCY_BUDGET_LLM_MS=${LATENCY_BUDGET_LLM_MS:-300}
+      - LATENCY_BUDGET_TTS_MS=${LATENCY_BUDGET_TTS_MS:-400}
+      - LATENCY_BUDGET_E2E_MS=${LATENCY_BUDGET_E2E_MS:-2000}
+    volumes:
+      - ../recordings:/app/recordings
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - voice-assistant-network
+
+networks:
+  voice-assistant-network:
+    driver: bridge

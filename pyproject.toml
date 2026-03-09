@@ -1,0 +1,127 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "realtime-voice-assistant"
+version = "0.1.0"
+description = "Production-ready real-time voice assistant with streaming architecture"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+keywords = ["voice", "assistant", "speech", "asr", "tts", "llm", "streaming", "websocket"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+dependencies = [
+    "asyncio-mqtt>=0.16.1",
+    "websockets>=12.0",
+    "aiohttp>=3.9.1",
+    "pydantic>=2.5.3",
+    "pydantic-settings>=2.1.0",
+    "openai>=1.6.1",
+    "google-generativeai>=0.3.2",
+    "elevenlabs>=0.2.27",
+    "pyaudio>=0.2.14",
+    "pyyaml>=6.0.1",
+    "python-dotenv>=1.0.0",
+    "structlog>=23.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "pytest-cov>=4.1.0",
+    "pytest-timeout>=2.2.0",
+    "hypothesis>=6.92.2",
+    "black>=23.12.1",
+    "flake8>=7.0.0",
+    "mypy>=1.7.1",
+    "isort>=5.13.2",
+    "ipython>=8.19.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/realtime-voice-assistant"
+Documentation = "https://github.com/yourusername/realtime-voice-assistant#readme"
+Repository = "https://github.com/yourusername/realtime-voice-assistant"
+Issues = "https://github.com/yourusername/realtime-voice-assistant/issues"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+packages = ["src", "config"]
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    ".venv/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false

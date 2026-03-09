@@ -1,0 +1,47 @@
+# Staging Environment Configuration
+# Mirrors production settings with enhanced observability for pre-production testing
+
+# API Configuration
+# Set via environment variables:
+#   WHISPER_API_KEY
+#   GEMINI_API_KEY
+#   ELEVENLABS_API_KEY
+#   ELEVENLABS_VOICE_ID
+
+# Production-like timeouts
+whisper_timeout: 3.0
+gemini_model: "gemini-pro"
+gemini_timeout: 5.0
+elevenlabs_timeout: 3.0
+
+# Server Configuration - bind to all interfaces
+websocket_host: "0.0.0.0"
+websocket_port: 8000
+metrics_host: "0.0.0.0"
+metrics_port: 8001
+
+# Pipeline Configuration - production settings
+audio_buffer_ms: 1000
+token_buffer_size: 10
+max_conversation_turns: 10
+
+# Resilience Configuration - production defaults
+retry_max_attempts: 3
+retry_initial_delay_ms: 100
+retry_max_delay_ms: 5000
+
+# Circuit breaker - production settings
+cb_failure_threshold: 0.5
+cb_window_size: 10
+cb_timeout_seconds: 30
+
+# Observability Configuration - enhanced logging and recording for testing
+enable_recording: true
+recording_path: "/var/log/voice-assistant/recordings/staging"
+log_level: "DEBUG"
+
+# Production latency budgets for realistic testing
+latency_budget_asr_ms: 500
+latency_budget_llm_ms: 300
+latency_budget_tts_ms: 400
+latency_budget_e2e_ms: 2000
