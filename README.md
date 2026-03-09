@@ -42,15 +42,6 @@ A production-ready streaming voice assistant application that processes audio in
    - Windows: Run `start.bat`
    - Linux/Mac: Run `./start.sh`
 
-2. ** Manual Setup (Step-by-Step)** - Follow detailed instructions
-   - See [RUN_INSTRUCTIONS.md](RUN_INSTRUCTIONS.md) for visual step-by-step guide
-   - See [QUICK_START_MANUAL.md](QUICK_START_MANUAL.md) for 5-minute setup
-   - See [MANUAL_SETUP_GUIDE.md](MANUAL_SETUP_GUIDE.md) for complete manual
-
-3. ** Docker Setup** - Containerized deployment
-   - See [docker/README.md](docker/README.md) for Docker instructions
-   - See [docker/DOCKER_QUICK_START.md](docker/DOCKER_QUICK_START.md) for quick Docker setup
-
 ---
 
 ###  Fastest Way - Automated Scripts
